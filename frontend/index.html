@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>Electrip − Trip planning for electric vehicles</title>
+        <title>Electrip − Calculateur d’itinéraires pour véhicules électriques</title>
         <link rel="stylesheet" href="leaflet/leaflet.css" />
         <style type="text/css">
 body {
@@ -14,19 +14,60 @@ body {
     bottom: 0;
     width: 100%;
 }
+#form {
+    position: absolute;
+    background-color: #ccc;
+    border: 1px white solid;
+    border-radius: 5px;
+    box-shadow: 0 0 10px #444;
+    margin: 15px;
+    padding: 10px;
+}
+.input-container > label {
+    display: inline-block;
+    width: 80px;
+    text-align: right;
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
         </style>
     </head>
     <body>
         <div id="map"></div>
+        <form id="form">
+            <div class="input-container">
+                <label for="from">De</label><input id="from" name="from" type="text" />
+                <button>Ma position</button>
+            </div>
+            <div class="input-container">
+                <label for="to">À</label><input id="to" name="to" type="text" />
+                <button>Ma position</button>
+            </div>
+            <div class="input-container">
+                <label for="range">Autonomie</label><input id="range" name="range" type="number" min="0" />&nbsp;km
+            </div>
+            Types de bornes de recharge&nbsp;:<br />
+            <input id="t_tesla" name="t_tesla" type="checkbox" />
+            <label for="t_tesla">Bornes Tesla</label><br />
+            <input id="t_renault" name="t_renault" type="checkbox" />
+            <label for="t_renault">Concessions Renault</label><br />
+            <input id="t_nissan" name="t_nissan" type="checkbox" />
+            <label for="t_nissan">Concessions Nissan</label><br />
+            <input id="t_autolib" name="t_autolib" type="checkbox" />
+            <label for="t_autolib">Bornes Autolib’</label><br />
+            <input type="submit" value="Calculer l’itinéraire" />
+        </form>
 
         <script type="text/javascript" src="leaflet/leaflet.js"></script>
         <script type="text/javascript">
-var map = L.map('map').setView([45.19329, 5.76798], 15);
+var map = L.map('map', {zoomControl: false});
+map.setView([45.19329, 5.76798], 15);
+map.addControl(L.control.zoom({position: 'topright'}));
 // See: http://harrywood.co.uk/maps/examples/leaflet/mapquest.view.html
 var mqLayer = L.tileLayer("http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png", {
     subdomains: "1234",
     attribution: "&copy; <a href='http://www.openstreetmap.org/'>OpenStreetMap</a> and contributors, under an <a href='http://www.openstreetmap.org/copyright' title='ODbL'>open license</a>. Tiles Courtesy of <a href='http://www.mapquest.com/'>MapQuest</a> <img src='http://developer.mapquest.com/content/osm/mq_logo.png'>"
-        })
+});
 
 mqLayer.addTo(map);
         </script>
