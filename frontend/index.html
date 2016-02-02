@@ -30,17 +30,70 @@ body {
     margin-right: 10px;
     margin-bottom: 10px;
 }
+/* See: http://www.w3schools.com/howto/howto_js_dropdown.asp */
+.dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+.dropdown {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px #aaa solid;
+    width: 100%;
+    overflow-y: scroll;
+    z-index: 100;
+}
+.dropdown > span {
+    display: none;
+    padding: 5px;
+    color: #c33;
+}
+.dropdown > ul {
+    display: none;
+    margin: 0;
+    padding: 0;
+}
+.dropdown li {
+    display: block;
+    padding: 2px 6px;
+    text-decoration: none;
+    border-bottom: 1px #aaa solid;
+}
+.dropdown li:last-child {
+    border-bottom: none;
+}
+.dropdown li:hover {
+    background-color: #f0f0f0;
+}
+.show {
+    display: block !important;
+}
         </style>
     </head>
     <body>
         <div id="map"></div>
         <form id="form">
             <div class="input-container">
-                <label for="from">De</label><input id="from" name="from" type="text" />
+                <label for="from">De</label>
+                <div class="dropdown-container">
+                    <input id="from" name="from" type="text" />
+                    <div class="dropdown">
+                        <span class="show">Aucun résultat</span>
+                        <ul></ul>
+                    </div>
+                </div>
                 <button>Ma position</button>
             </div>
             <div class="input-container">
-                <label for="to">À</label><input id="to" name="to" type="text" />
+                <label for="to">À</label>
+                <div class="dropdown-container">
+                    <input id="to" name="to" type="text" />
+                    <div class="dropdown">
+                        <span class="show">Aucun résultat</span>
+                        <ul></ul>
+                    </div>
+                </div>
                 <button>Ma position</button>
             </div>
             <div class="input-container">
@@ -70,6 +123,173 @@ var mqLayer = L.tileLayer("http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}
 });
 
 mqLayer.addTo(map);
+
+var fromMarker = null;
+var toMarker = null;
+
+var photonBaseUrl = 'http://photon.komoot.de/';
+
+var makeAjax = function(url, success, failure) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', encodeURI(url));
+    xhr.onload = function() {
+        if (200 === xhr.status) {
+            success(xhr.responseText);
+        }
+        else {
+            if (undefined === failure || null === failure) {
+                console.log('Ajax request failed for URL: ', url,
+                    '. Status: ', xhr.status);
+            } else {
+                failure(xhr.status);
+            }
+        }
+    };
+    xhr.send();
+}
+
+var geocodeResponseToLocation = function(response) {
+    var parsedResponse;
+    try {
+        parsedResponse = JSON.parse(response);
+    } catch (e) {
+        return null;
+    }
+    var results = [];
+    var features = parsedResponse.features;
+    var length = features.length;
+    var separator = '';
+    for (i = 0; i < length; i++) {
+        var element = {};
+        element.lng = features[i].geometry.coordinates[0];
+        element.lat = features[i].geometry.coordinates[1];
+        element.text = '';
+        separator = '';
+        if (features[i].properties.name) {
+            element.text += features[i].properties.name;
+            separator = ', ';
+        }
+        if (features[i].properties.street) {
+            if (features[i].properties.housenumber) {
+                element.text += separator + features[i].properties.housenumber;
+                separator = ' ';
+            }
+            element.text += separator + features[i].properties.street;
+            separator = ', ';
+        }
+        if (features[i].properties.city) {
+            element.text += separator + features[i].properties.city;
+            separator = ', ';
+        }
+        if (features[i].properties.country
+            && features[i].properties.name !== features[i].properties.country) {
+            element.text += separator + features[i].properties.country;
+        }
+        if ('' != element.text) {
+            results.push(element);
+        }
+    }
+    return results;
+}
+
+var ddListCb = function(event) {
+    var lat = event.target.getAttribute('lat');
+    var lng = event.target.getAttribute('lng');
+    var latLng = {lat: lat, lng: lng};
+    var text = event.target.firstChild.nodeValue;
+    var inputElt = event.target.parentNode.parentNode.previousElementSibling;
+    var isFromInputElt = 'from' === inputElt.id;
+    var markerElt = isFromInputElt ? fromMarker : toMarker;
+    inputElt.value = text;
+    if (markerElt) {
+        markerElt.setLatLng(latLng);
+    } else {
+        markerElt = L.marker(latLng);
+        markerElt.addTo(map);
+    }
+    map.panTo(latLng);
+}
+
+var populateDDList = function(list, content) {
+    span = list.children[0];
+    ul = list.children[1];
+    if (!content || 0 === content.length) {
+        span.classList.add('show');
+        ul.classList.remove('show');
+    } else {
+        while (ul.lastChild) {
+            ul.removeChild(ul.lastChild);
+        }
+        var length = content.length;
+        var li;
+        for (i = 0; i < length; i++) {
+            li = document.createElement('li');
+            li.appendChild(document.createTextNode(content[i].text));
+            li.setAttribute('lat', content[i].lat);
+            li.setAttribute('lng', content[i].lng);
+            li.addEventListener('click', ddListCb, false);
+            ul.appendChild(li);
+        }
+        span.classList.remove('show');
+        ul.classList.add('show');
+    }
+}
+
+var geocodeCb = function(element, content) {
+    console.log('Geocode elements: ', content);
+    var list = element.nextElementSibling;
+    console.log(list);
+    populateDDList(list, content);
+    list.classList.add('show');
+}
+
+var geocode = function(query, element) {
+    if (null === query || '' === query) {
+        return null;
+    }
+    var mapCenter = map.getCenter();
+    makeAjax(photonBaseUrl + 'api/?limit=10&lang=fr&lat=' + mapCenter.lat
+        + '&lon=' + mapCenter.lng + '&q=' + query, function(response) {
+        geocodeCb(element, geocodeResponseToLocation(response));
+    });
+}
+
+// See: http://stackoverflow.com/questions/1047210/how-do-i-wait-until-the-user-has-finished-writing-down-in-a-text-input-to-call-a
+var typeWatch = function() {
+    var typeWatchTimer = 0;
+    return function(callback, delay) {
+        clearTimeout(typeWatchTimer);
+        typeWatchTimer = setTimeout(callback, delay);
+    }
+}();
+
+var inputFrom = document.getElementById('from');
+var geocodeInputFrom = function() {
+    geocode(inputFrom.value, inputFrom);
+}
+inputFrom.addEventListener('input', function() {
+    typeWatch(geocodeInputFrom, 1000);
+});
+inputFrom.addEventListener('blur', function() {
+    // Ugly hack to allow the dropdown list to receive click event before hiding
+    setTimeout(function() {
+        inputFrom.nextElementSibling.classList.remove('show');
+    }, 100);
+});
+
+var inputTo = document.getElementById('to');
+var geocodeInputTo = function() {
+    geocode(inputTo.value, inputTo);
+}
+inputTo.addEventListener('input', function() {
+    typeWatch(geocodeInputTo, 1000);
+});
+inputTo.addEventListener('blur', function() {
+    // Ugly hack to allow the dropdown list to receive click event before hiding
+    setTimeout(function() {
+        inputTo.nextElementSibling.classList.remove('show');
+    }, 100);
+});
         </script>
     </body>
 </html>
