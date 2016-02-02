@@ -77,7 +77,7 @@ body {
             <div class="input-container">
                 <label for="from">De</label>
                 <div class="dropdown-container">
-                    <input id="from" name="from" type="text" />
+                    <input id="from" name="from" type="text" autocomplete="off" />
                     <div class="dropdown">
                         <span class="show">Aucun résultat</span>
                         <ul></ul>
@@ -88,7 +88,7 @@ body {
             <div class="input-container">
                 <label for="to">À</label>
                 <div class="dropdown-container">
-                    <input id="to" name="to" type="text" />
+                    <input id="to" name="to" type="text" autocomplete="off" />
                     <div class="dropdown">
                         <span class="show">Aucun résultat</span>
                         <ul></ul>
@@ -146,7 +146,7 @@ var makeAjax = function(url, success, failure) {
         }
     };
     xhr.send();
-}
+};
 
 var geocodeResponseToLocation = function(response) {
     var parsedResponse;
@@ -159,7 +159,7 @@ var geocodeResponseToLocation = function(response) {
     var features = parsedResponse.features;
     var length = features.length;
     var separator = '';
-    for (i = 0; i < length; i++) {
+    for (var i = 0; i < length; i++) {
         var element = {};
         element.lng = features[i].geometry.coordinates[0];
         element.lat = features[i].geometry.coordinates[1];
@@ -190,7 +190,7 @@ var geocodeResponseToLocation = function(response) {
         }
     }
     return results;
-}
+};
 
 var ddListCb = function(event) {
     var lat = event.target.getAttribute('lat');
@@ -204,11 +204,11 @@ var ddListCb = function(event) {
     markerElt.setLatLng(latLng);
     markerElt.addTo(map);
     map.panTo(latLng);
-}
+};
 
 var populateDDList = function(list, content) {
-    span = list.children[0];
-    ul = list.children[1];
+    var span = list.children[0];
+    var ul = list.children[1];
     if (!content || 0 === content.length) {
         span.classList.add('show');
         ul.classList.remove('show');
@@ -229,7 +229,7 @@ var populateDDList = function(list, content) {
         span.classList.remove('show');
         ul.classList.add('show');
     }
-}
+};
 
 var geocodeCb = function(element, content) {
     console.log('Geocode elements: ', content);
@@ -237,7 +237,7 @@ var geocodeCb = function(element, content) {
     console.log(list);
     populateDDList(list, content);
     list.classList.add('show');
-}
+};
 
 var geocode = function(query, element) {
     if (null === query || '' === query) {
@@ -248,7 +248,7 @@ var geocode = function(query, element) {
         + '&lon=' + mapCenter.lng + '&q=' + query, function(response) {
         geocodeCb(element, geocodeResponseToLocation(response));
     });
-}
+};
 
 // See: http://stackoverflow.com/questions/1047210/how-do-i-wait-until-the-user-has-finished-writing-down-in-a-text-input-to-call-a
 var typeWatch = function() {
@@ -262,9 +262,9 @@ var typeWatch = function() {
 var inputFrom = document.getElementById('from');
 var geocodeInputFrom = function() {
     geocode(inputFrom.value, inputFrom);
-}
+};
 inputFrom.addEventListener('input', function() {
-    typeWatch(geocodeInputFrom, 1000);
+    typeWatch(geocodeInputFrom, 500);
 });
 inputFrom.addEventListener('blur', function() {
     // Ugly hack to allow the dropdown list to receive click event before hiding
@@ -276,9 +276,9 @@ inputFrom.addEventListener('blur', function() {
 var inputTo = document.getElementById('to');
 var geocodeInputTo = function() {
     geocode(inputTo.value, inputTo);
-}
+};
 inputTo.addEventListener('input', function() {
-    typeWatch(geocodeInputTo, 1000);
+    typeWatch(geocodeInputTo, 500);
 });
 inputTo.addEventListener('blur', function() {
     // Ugly hack to allow the dropdown list to receive click event before hiding
