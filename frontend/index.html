@@ -124,8 +124,8 @@ var mqLayer = L.tileLayer("http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}
 
 mqLayer.addTo(map);
 
-var fromMarker = null;
-var toMarker = null;
+var fromMarker = L.marker([0, 0]);
+var toMarker = L.marker([0, 0]);
 
 var photonBaseUrl = 'http://photon.komoot.de/';
 
@@ -201,12 +201,8 @@ var ddListCb = function(event) {
     var isFromInputElt = 'from' === inputElt.id;
     var markerElt = isFromInputElt ? fromMarker : toMarker;
     inputElt.value = text;
-    if (markerElt) {
-        markerElt.setLatLng(latLng);
-    } else {
-        markerElt = L.marker(latLng);
-        markerElt.addTo(map);
-    }
+    markerElt.setLatLng(latLng);
+    markerElt.addTo(map);
     map.panTo(latLng);
 }
 
