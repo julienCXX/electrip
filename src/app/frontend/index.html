@@ -100,14 +100,12 @@ body {
                 <label for="range">Autonomie</label><input id="range" name="range" type="number" min="0" />&nbsp;km
             </div>
             Types de bornes de recharge&nbsp;:<br />
-            <input id="t_tesla" name="t_tesla" type="checkbox" />
-            <label for="t_tesla">Bornes Tesla</label><br />
-            <input id="t_renault" name="t_renault" type="checkbox" />
-            <label for="t_renault">Concessions Renault</label><br />
-            <input id="t_nissan" name="t_nissan" type="checkbox" />
-            <label for="t_nissan">Concessions Nissan</label><br />
-            <input id="t_autolib" name="t_autolib" type="checkbox" />
-            <label for="t_autolib">Bornes Autolib’</label><br />
+            % for s_type in station_types:
+            <input id="t_${s_type['id']}" name="t_${s_type['id']}"
+            type="checkbox" checked
+            onchange="toggleStationLayer(${s_type['id']}, this.checked)"/>
+            <label for="t_${s_type['id']}">${s_type['name']}</label><br />
+            % endfor
             <input type="submit" value="Calculer l’itinéraire" />
         </form>
 
@@ -127,7 +125,7 @@ mqLayer.addTo(map);
 var fromMarker = L.marker([0, 0]);
 var toMarker = L.marker([0, 0]);
 
-var photonBaseUrl = 'http://photon.komoot.de/';
+var photonBaseUrl = '${PHOTON_URL}';
 
 var makeAjax = function(url, success, failure) {
     var xhr = new XMLHttpRequest();
@@ -286,6 +284,31 @@ inputTo.addEventListener('blur', function() {
         inputTo.nextElementSibling.classList.remove('show');
     }, 100);
 });
+
+/* Generated station list */
+var stations = ${stations};
+var stationMarkerLayers = {};
+for (var sType in stations) {
+    var typedStations = stations[sType];
+    var stationMarkerLayer = [];
+    for (var s in typedStations) {
+        stationMarkerLayer.push(L.marker(typedStations[s].position).bindPopup(
+            '<b>' + typedStations[s].name + '</b><br />'
+            + typedStations[s].address + '<br />Source&nbsp;: '
+            + typedStations[s].source + '<br /><em>' + typedStations[s].remarks
+            + '</em>'));
+    }
+    stationMarkerLayers[sType] = L.layerGroup(stationMarkerLayer);
+    stationMarkerLayers[sType].addTo(map);
+}
+
+var toggleStationLayer = function(sId, enable) {
+    if (enable) {
+        map.addLayer(stationMarkerLayers[sId]);
+    } else {
+        map.removeLayer(stationMarkerLayers[sId]);
+    }
+}
         </script>
     </body>
 </html>
