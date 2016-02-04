@@ -38,6 +38,24 @@ class RoutePlanner:
         self.station_types = station_types
         self.cursor = cursor
 
+    def getCompleteRoutingInstructions(self, charge_points, zoom_level):
+        result = charge_points
+        if not result['route_found']:
+            return result
+        query = OSRM_URL + \
+            'viaroute?loc=%f,%f' % (self.start.y, self.start.x)
+        for point in charge_points['stations']:
+            query = query + '&loc=%f,%f' \
+                % (point['position'].y, point['position'].x)
+        query = query + '&loc=%f,%f&z=%d&instructions=true&alt=false' \
+            % (self.finish.y, self.finish.x, zoom_level)
+        response = requests.get(url = query)
+        response = response.json()
+        result['route_geometry'] = response['route_geometry']
+        result['route_instructions'] = response['route_instructions']
+        result['route_summary'] = response['route_summary']
+        return result
+
     def getCandidateChargePoints(self, start, finish, max_dist_from_finish):
         str_types = str(self.station_types)[1:-1]
         query = "SELECT ST_AsGeoJSON(position), address, station.id " \
@@ -63,9 +81,10 @@ class RoutePlanner:
             })
         return candidates
 
-    def plan(self):
-        return self.findChargePoints(self.start, self.finish, #[],
+    def plan(self, zoom_level = 0):
+        result = self.findChargePoints(self.start, self.finish, #[],
             sys.maxsize)
+        return self.getCompleteRoutingInstructions(result, zoom_level)
 
     def findChargePoints(self, start, finish, #blacklisted_stations,
             previous_dist_from_finish):
@@ -83,6 +102,7 @@ class RoutePlanner:
         #        [candidate['position']]
         for candidate in candidates:
             #print(candidate)
+
             #print(previous_stations)
             cand_pos = candidate['position']
             #if cand_pos not in blacklisted_stations \
@@ -100,7 +120,48 @@ class RoutePlanner:
                     return {'route_found': True,
                         'stations': [candidate] + next_stations['stations']}
 
-        return {'route_found': False}
+        return {'route_found': False, 'stations': []}
+
+class CachedRoutePlanner:
+    def __init__(self, cursor):
+        self.cursor = cursor
+        self.cached_queries = {}
+
+    def strip_station_positions(self, result):
+        light_stations = []
+        for station in result['stations']:
+            light_stations += [station['id']]
+        result['stations'] = light_stations
+
+    def plan(self, start, finish, drive_range, station_types, zoom):
+        key = {'start_lng': start.x, 'start_lat': start.y, 'finish_lng':
+            finish.x, 'finish_lat': finish.y, 'drive_range': drive_range,
+            'station_types': station_types}
+        key = json.dumps(key)
+        if key in self.cached_queries:
+            if zoom in self.cached_queries[key]:
+                return self.cached_queries[key][zoom]
+            else:
+                # Stations are already present for this query
+                planner = RoutePlanner(start, finish, drive_range,
+                    station_types, self.cursor)
+                charge_points = {}
+                charge_points['stations'] = self.cached_queries[key]['stations']
+                charge_points['route_found'] = (charge_points['stations'] != [])
+                result = planner.getCompleteRoutingInstructions(charge_points,
+                    zoom)
+                self.strip_station_positions(result)
+                self.cached_queries[key][zoom] = result
+                return result
+        else:
+            planner = RoutePlanner(start, finish, drive_range, station_types,
+                self.cursor)
+            result = planner.plan(zoom)
+            self.cached_queries[key] = {}
+            self.cached_queries[key]['stations'] = result['stations']
+            self.strip_station_positions(result)
+            self.cached_queries[key][zoom] = result
+            return result
 
 if __name__ == '__main__':
     db = psycopg2.connect(user = "cod", dbname = "cod")
@@ -112,11 +173,18 @@ if __name__ == '__main__':
     #finish = Point(x = -0.422919, y = 43.320557, srid = 4326) # 64
     drive_range = 153 # in km
     types = [2, 3, 4]
-    planner = RoutePlanner(start, finish, drive_range, types, cursor)
-    route = planner.plan()
-    print("Route: ", route)
+    #planner = RoutePlanner(start, finish, drive_range, types, cursor)
+    #route = planner.plan()
+    #print("Route: ", route)
     #dist = getEffectiveDistance(start, finish)
     #print(dist)
     #dist = getEuclideanDistance(start, finish, cursor)
     #print(dist)
     #print(planner.getCandidateChargePoints(start, finish))
+
+    # Needs extensive testing
+    cache = CachedRoutePlanner(cursor)
+    route = cache.plan(start, finish, drive_range, types, 0)
+    print("Route 0: ", route)
+    route = cache.plan(start, finish, drive_range, types, 11)
+    print("Route 11: ", route)
