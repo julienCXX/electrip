@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Challenge Open Data − Mini-rapport</title>
+    </head>
+    <body>
+        <h1>Challenge Open Data − Mini-rapport</h1>
+        <p>Julien&nbsp;C., Bakr&nbsp;D. et Youssef&nbsp;M.</p>
+        <p>Ensimag, 3<sup>e</sup>&nbsp;année</p>
+
+        <h2>Idée</h2>
+        <p>Les véhicules électriques sont une alternative à ceux fonctionnant
+        avec un moteur thermique. Malheureusement, l’autonomie de ces véhicules
+        n’est pas très élevée et les stations de recharge ne sont pas très
+        nombreuses.</p>
+        <p>Ainsi, nous avons décidé de réaliser une application de calcul
+        d’itinéraires, spécifiquement optimisée pour les véhicules électriques.
+        À partir des points de départ et de destination ainsi que l’autonomie du
+        véhicule et une liste de stations, il est possible de calculer et
+        d’afficher une route passant par un nombre minimal de stations de
+        recharge, tout en ne tombant pas en panne de batterie (en supposant
+        qu’elle est entièrement chargée au départ).</p>
+
+        <h2>Algorithmes et traitements</h2>
+        <p>Les traitements d’information sont essentiellement de l’affichage
+        d’un fond de carte et de l’affichage de données sur ce fond de carte.
+        La détermination du point de départ ainsi que celui d’arrivée requiert
+        l’utilisation du géocodage.</p>
+        <p>Pour le calcul de l’itinéraire final, un algorithme spécifique a été
+        mis au point. Il fonctionne par interrogations successives d’un moteur
+        de calcul d’itinéraires existant. Son principe est le suivant&nbsp;: il
+        commence par calculer la distance euclidienne (à vol d’oiseau) entre le
+        point de départ et d’arrivée. Si cette distance est inférieure à
+        l’autonomie du véhicule, l’algorithme fait de même avec la distance
+        effective (obtenue par le moteur de calcul d’itinéraires existant, ce
+        qui est plus lourd). Si cette distance est également inférieure, il
+        n’est pas nécessaire de s’arrêter à une station. Sinon, il faut trouver
+        une station intermédiaire. Cette recherche consiste à prendre les
+        stations situées dans la limite d’autonomie du point de départ (à vol
+        d’oiseau) et de les trier selon leur proximité avec le point de
+        destination. La première station trouvée est utilisée&nbsp;: si la
+        distance effective est inférieure à l’autonomie, la station est
+        conservée comme point intermédiaire et l’algorithme est réappliqué
+        récursivement, en prenant la station comme point de départ. Dans le cas
+        contraire, ce traitement est appliqué sur la station suivante. Si aucune
+        station ne convient, l’algorithme revient en arrière et retente son
+        calcul avec une autre station, ainsi de suite.</p>
+
+        <h2>Architecture retenue</h2>
+        <img src="architecture.svg" onerror="this.src='architecture.png'"
+        alt="architecture">
+
+        <h2>Choix technologiques</h2>
+        <p>Les technologies utilisées sont&nbsp;:</p>
+        <ul>
+            <li><a href="http://leafletjs.com/">Leaflet</a>,
+                pour la carte sur le <em>frontend</em>&nbsp;;</li>
+            <li><a href="http://photon.komoot.de/">Photon</a>,
+                pour le géocodage&nbsp;;</li>
+            <li><a href="https://www.python.org/">Python</a> et
+                <a href="http://www.cherrypy.org/">CherryPy</a>,
+                pour le <em>backend</em>&nbsp;;</li>
+            <li><a href="http://project-osrm.org/">OSRM</a>,
+                pour le calcul de l’itinéraire effectif&nbsp;;</li>
+            <li><a href="http://www.postgresql.org/">PostgreSQL</a> et
+                <a href="http://postgis.net/">PostGIS</a>,
+                pour stocker les stations en base de données.</li>
+        </ul>
+
+        <h2>Source des données</h2>
+        <p>Ces sources sont partagées entre des services Web et des données en
+            tant que telles. Pour les services, nous avons&nbsp;:</p>
+        <ul>
+            <li><a href="http://photon.komoot.de/">serveur Photon</a>&nbsp;;
+            </li>
+            <li><a href="http://www.mapquest.com/">tuiles du fond de carte
+                </a>&nbsp;;</li>
+            <li><a href="http://router.project-osrm.org/">serveur OSRM</a>.</li>
+        </ul>
+        Les services sus-cités se basent sur les données géographiques
+        d’<a href="http://www.openstreetmap.org/">OpenStreetMap</a>. Les
+        autres données viennent de&nbsp;:
+        <ul>
+<li><a href="https://www.data.gouv.fr/fr/datasets/caracteristiques-et-localisation-des-stations-de-recharge-supercharger-tesla/">
+Caractéristiques et localisation des stations de recharge Supercharger TESLA
+</a>&nbsp;;</li>
+<li><a href="https://www.data.gouv.fr/fr/datasets/reseau-bornes-de-recharge-rapide-concessions-nissan/">
+Réseau bornes de recharge rapide concessions Nissan</a>&nbsp;;</li>
+<li><a href="https://www.data.gouv.fr/fr/datasets/localisation-des-bornes-de-recharge-pour-vehicules-electriques-dans-les-magasins-e-leclerc/">
+Localisation des bornes de recharge pour véhicules électriques dans les magasins
+E.LECLERC</a>&nbsp;;</li>
+<li><a href="https://www.data.gouv.fr/fr/datasets/bornes-de-recharge-pour-vehicules-electriques-parking-effia/">
+Bornes de recharge pour véhicules électriques - Parking EFFIA</a>&nbsp;;</li>
+        </ul>
+    </body>
+</html>
