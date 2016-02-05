@@ -9,11 +9,14 @@ from postgis import register, Point
 
 import json
 
+from route_planner import CachedRoutePlanner
+
 PHOTON_URL = 'http://photon.komoot.de/'
 
 class ElectripBackend(object):
     def __init__(self, cursor):
         self.cursor = cursor
+        self.planner = CachedRoutePlanner(cursor)
 
     @cherrypy.expose
     def index(self):
@@ -54,6 +57,19 @@ class ElectripBackend(object):
                 })
             result[s_type['id']] = stations
         return result
+
+    @cherrypy.expose
+    def route(self, params):
+        dec_params = json.loads(params)
+        start = Point(x = dec_params['start']['lng'],
+                y = dec_params['start']['lat'])
+        finish = Point(x = dec_params['finish']['lng'],
+                y = dec_params['finish']['lat'])
+        drive_range = int(dec_params['range'])
+        types = dec_params['types']
+        zoom = int(dec_params['zoom'])
+        route = self.planner.plan(start, finish, drive_range, types, zoom)
+        return json.dumps(route)
 
 if __name__ == '__main__':
     conf = {

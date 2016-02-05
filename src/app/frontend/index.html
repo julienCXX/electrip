@@ -97,7 +97,9 @@ body {
                 <button>Ma position</button>
             </div>
             <div class="input-container">
-                <label for="range">Autonomie</label><input id="range" name="range" type="number" min="0" />&nbsp;km
+                <label for="range">Autonomie</label>
+                <input id="range" name="range" type="number" min="0"
+                value="200"/>&nbsp;km
             </div>
             Types de bornes de recharge&nbsp;:<br />
             % for s_type in station_types:
@@ -106,7 +108,8 @@ body {
             onchange="toggleStationLayer(${s_type['id']}, this.checked)"/>
             <label for="t_${s_type['id']}">${s_type['name']}</label><br />
             % endfor
-            <input type="submit" value="Calculer l’itinéraire" />
+            <input type="button" value="Calculer l’itinéraire"
+            onclick="sendForm()"/>
         </form>
 
         <script type="text/javascript" src="leaflet/leaflet.js"></script>
@@ -123,7 +126,12 @@ var mqLayer = L.tileLayer("http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}
 mqLayer.addTo(map);
 
 var fromMarker = L.marker([0, 0]);
+var isFromMarkerSet = false;
 var toMarker = L.marker([0, 0]);
+var isToMarkerSet = false;
+
+var routePolyline = L.polyline({color: 'blue'});
+routePolyline.addTo(map);
 
 var photonBaseUrl = '${PHOTON_URL}';
 
@@ -201,6 +209,11 @@ var ddListCb = function(event) {
     inputElt.value = text;
     markerElt.setLatLng(latLng);
     markerElt.addTo(map);
+    if (isFromInputElt) {
+        isFromMarkerSet = true;
+    } else {
+        isToMarkerSet = true;
+    }
     map.panTo(latLng);
 };
 
@@ -309,6 +322,57 @@ var toggleStationLayer = function(sId, enable) {
         map.removeLayer(stationMarkerLayers[sId]);
     }
 }
+
+var getSelectedStationTypes = function() {
+    var selectedS = [];
+    for (var sType in stations) {
+        if (document.getElementById('t_' + sType).checked) {
+            selectedS.push(sType);
+        }
+    }
+    return selectedS;
+}
+
+var routeSuccessCb = function(response) {
+    var objResponse = JSON.parse(response);
+    console.log(objResponse);
+    if (!objResponse['route_found']) {
+        alert('Pas d’itinéraire trouvé');
+        return;
+    }
+    routePolyline.setLatLngs(objResponse['route_geometry']);
+}
+
+var routeFailureCb = function(status) {
+    alert('Failed to send route instructions. Status: ' + status);
+}
+
+var sendForm = function() {
+    if (!isFromMarkerSet) {
+        alert('Veuillez spécifier un point de départ');
+        return;
+    }
+    if (!isToMarkerSet) {
+        alert('Veuillez spécifier un point d’arrivée');
+        return;
+    }
+
+    var params = {};
+    params['start'] = fromMarker.getLatLng();
+    params['finish'] = toMarker.getLatLng();
+    params['range'] = document.getElementById('range').value;
+    params['types'] = getSelectedStationTypes();
+    params['zoom'] = map.getZoom();
+
+    jsonParams = JSON.stringify(params);
+    makeAjax('/route?params=' + jsonParams, routeSuccessCb, routeFailureCb);
+}
+
+map.on('zoomend', function(e) {
+    if (isFromMarkerSet && isToMarkerSet) {
+        sendForm();
+    }
+});
         </script>
     </body>
 </html>
