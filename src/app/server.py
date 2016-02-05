@@ -11,7 +11,7 @@ import json
 
 from route_planner import CachedRoutePlanner
 
-PHOTON_URL = 'http://photon.komoot.de/'
+import app_config
 
 class ElectripBackend(object):
     def __init__(self, cursor):
@@ -22,7 +22,8 @@ class ElectripBackend(object):
     def index(self):
         template = Template(filename = './frontend/index.html',
             input_encoding='utf-8')
-        return template.render(PHOTON_URL = PHOTON_URL,
+        return template.render(tile_server = app_config.TILE_SERVER,
+            photon_url = app_config.PHOTON_URL,
             station_types = self.getStationTypes(),
             stations = self.getStations())
 
@@ -82,7 +83,8 @@ if __name__ == '__main__':
             'tools.staticdir.dir': './frontend/leaflet'
         }
     }
-    db = psycopg2.connect(user = "cod", dbname = "cod")
+    db = psycopg2.connect(user = app_config.DB_USER,
+        password = app_config.DB_PASSWORD, dbname = app_config.DB_NAME)
     cursor = db.cursor()
     register(cursor)
     backend = ElectripBackend(cursor)

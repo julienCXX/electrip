@@ -9,7 +9,7 @@ import requests
 
 import json
 
-OSRM_URL = 'http://router.project-osrm.org/'
+import app_config
 
 def getEuclideanDistance(p1, p2, cursor):
     "Returns the distance (crow-fly) between 2 points (in meters)"
@@ -22,7 +22,7 @@ def getEuclideanDistance(p1, p2, cursor):
 def getEffectiveDistance(p1, p2):
     "Returns the distance (using roads) between 2 points (in meters)"
 
-    query = OSRM_URL + \
+    query = app_config.OSRM_URL + \
         'viaroute?loc=%f,%f&loc=%f,%f&alt=false&geometry=false' \
         % (p1.y, p1.x, p2.y, p2.x)
     response = requests.get(url = query)
@@ -42,7 +42,7 @@ class RoutePlanner:
         result = charge_points
         if not result['route_found']:
             return result
-        query = OSRM_URL + \
+        query = app_config.OSRM_URL + \
             'viaroute?loc=%f,%f' % (self.start.y, self.start.x)
         for point in charge_points['stations']:
             query = query + '&loc=%f,%f' \
@@ -168,7 +168,8 @@ class CachedRoutePlanner:
             return result
 
 if __name__ == '__main__':
-    db = psycopg2.connect(user = "cod", dbname = "cod")
+    db = psycopg2.connect(user = app_config.DB_USER,
+        password = app_config.DB_PASSWORD, dbname = app_config.DB_NAME)
     cursor = db.cursor()
     register(cursor)
 

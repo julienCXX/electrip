@@ -118,10 +118,8 @@ var map = L.map('map', {zoomControl: false});
 map.setView([45.19329, 5.76798], 15);
 map.addControl(L.control.zoom({position: 'topright'}));
 // See: http://harrywood.co.uk/maps/examples/leaflet/mapquest.view.html
-var mqLayer = L.tileLayer("http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png", {
-    subdomains: "1234",
-    attribution: "&copy; <a href='http://www.openstreetmap.org/'>OpenStreetMap</a> and contributors, under an <a href='http://www.openstreetmap.org/copyright' title='ODbL'>open license</a>. Tiles Courtesy of <a href='http://www.mapquest.com/'>MapQuest</a> <img src='http://developer.mapquest.com/content/osm/mq_logo.png'>"
-});
+var mqLayer = L.tileLayer("${tile_server['url']}",
+    ${tile_server['parameters']});
 
 mqLayer.addTo(map);
 
@@ -133,7 +131,7 @@ var isToMarkerSet = false;
 var routePolyline = L.polyline({color: 'blue'});
 routePolyline.addTo(map);
 
-var photonBaseUrl = '${PHOTON_URL}';
+var photonBaseUrl = '${photon_url}';
 
 var makeAjax = function(url, success, failure) {
     var xhr = new XMLHttpRequest();
