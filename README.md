@@ -26,3 +26,8 @@ Created for the Ensimag’s Open Data Challenge, year 2015-2016
 # Execution
 * Run the script located at `src/app/server.py`
 * Open a Web browser at the URL `localhost:8080`
+
+# About the `src/challenge` directory
+This is the car comparison part of the project.
+To use it, you will need a PHP/MySql installation.
+Please import data from `data/sql/vehicle.sql` into a database named `codata`.
