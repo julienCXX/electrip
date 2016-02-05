@@ -47,7 +47,8 @@ class RoutePlanner:
         for point in charge_points['stations']:
             query = query + '&loc=%f,%f' \
                 % (point['position'].y, point['position'].x)
-        query = query + '&loc=%f,%f&z=%d&instructions=true&alt=false' \
+        query = query + \
+            '&loc=%f,%f&z=%d&instructions=true&alt=false&compression=false' \
             % (self.finish.y, self.finish.x, zoom_level)
         response = requests.get(url = query)
         response = response.json()
@@ -58,6 +59,9 @@ class RoutePlanner:
 
     def getCandidateChargePoints(self, start, finish, max_dist_from_finish):
         str_types = str(self.station_types)[1:-1]
+        if '' == str_types:
+            return []
+
         query = "SELECT ST_AsGeoJSON(position), address, station.id " \
                 "FROM station, station_type " \
                 "WHERE station_type.id = type " \
@@ -70,9 +74,9 @@ class RoutePlanner:
                 "ORDER BY ST_Distance(position, ST_GeographyFromText('%s'));"
         query = query % (str_types, start, self.drive_range, start,
                 self.drive_range / 2, finish, max_dist_from_finish, finish)
-        cursor.execute(query)
+        self.cursor.execute(query)
         candidates = []
-        for row in cursor:
+        for row in self.cursor:
             jsonRowCoords = json.loads(row[0])['coordinates']
             candidates.append({
                 'position': Point(x = jsonRowCoords[0], y = jsonRowCoords[1]),
