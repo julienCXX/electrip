@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS station;
+DROP TABLE IF EXISTS station_type;
