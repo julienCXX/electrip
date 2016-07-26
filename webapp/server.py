@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from bottle import Bottle, request, static_file
+from bottle import Bottle, request, static_file, view, template
 
 import os
 from mako.template import Template
@@ -61,13 +61,12 @@ if __name__ == '__main__':
         return result
 
     @app.route('/')
+    @view('index')
     def index():
-        template = Template(filename=os.path.join(APP_BASEDIR,
-                'frontend/index.html'), input_encoding='utf-8')
-        return template.render(tile_server = app_config.TILE_SERVER,
-            photon_url = app_config.PHOTON_URL,
-            station_types = getStationTypes(),
-            stations = getStations())
+        return dict(tile_server=app_config.TILE_SERVER,
+                photon_url=app_config.PHOTON_URL,
+                station_types=getStationTypes(),
+                stations=getStations())
 
     @app.route('/route')
     def route():

@@ -103,11 +103,11 @@ body {
             </div>
             Types de bornes de recharge&nbsp;:<br />
             % for s_type in station_types:
-            <input id="t_${s_type['id']}" name="t_${s_type['id']}"
-            type="checkbox" checked
-            onchange="toggleStationLayer(${s_type['id']}, this.checked)"/>
-            <label for="t_${s_type['id']}">${s_type['name']}</label><br />
-            % endfor
+                <input id="t_{{s_type['id']}}" name="t_{{s_type['id']}}"
+                type="checkbox" checked
+                onchange="toggleStationLayer({{s_type['id']}}, this.checked)"/>
+                <label for="t_{{s_type['id']}}">{{s_type['name']}}</label><br />
+            % end
             <input type="button" value="Calculer l’itinéraire"
             onclick="sendForm()"/>
         </form>
@@ -118,8 +118,8 @@ var map = L.map('map', {zoomControl: false});
 map.setView([45.19329, 5.76798], 15);
 map.addControl(L.control.zoom({position: 'topright'}));
 // See: http://harrywood.co.uk/maps/examples/leaflet/mapquest.view.html
-var mqLayer = L.tileLayer("${tile_server['url']}",
-    ${tile_server['parameters']});
+var mqLayer = L.tileLayer("{{!tile_server['url']}}",
+    {{!tile_server['parameters']}});
 
 mqLayer.addTo(map);
 
@@ -131,7 +131,7 @@ var isToMarkerSet = false;
 var routePolyline = L.polyline({color: 'blue'});
 routePolyline.addTo(map);
 
-var photonBaseUrl = '${photon_url}';
+var photonBaseUrl = '{{!photon_url}}';
 
 var makeAjax = function(url, success, failure) {
     var xhr = new XMLHttpRequest();
@@ -297,7 +297,7 @@ inputTo.addEventListener('blur', function() {
 });
 
 /* Generated station list */
-var stations = ${stations};
+var stations = {{!stations}};
 var stationMarkerLayers = {};
 for (var sType in stations) {
     var typedStations = stations[sType];
