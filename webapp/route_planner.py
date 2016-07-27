@@ -34,7 +34,7 @@ class RoutePlanner:
     def __init__(self, start, finish, drive_range, station_types, cursor):
         self.start = start
         self.finish = finish
-        self.drive_range = drive_range * 1000 # km -> m
+        self.drive_range = drive_range # in meters
         self.station_types = station_types
         self.cursor = cursor
 
@@ -94,7 +94,7 @@ class RoutePlanner:
             previous_dist_from_finish):
         if getEuclideanDistance(start, finish, self.cursor) \
             < self.drive_range \
-            and getEffectiveDistance(start, finish) < self.drive_range * 1000:
+            and getEffectiveDistance(start, finish) < self.drive_range:
             # No need for intermediate charging station
             return {'route_found': True, 'stations': []}
 

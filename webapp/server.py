@@ -78,7 +78,7 @@ if __name__ == '__main__':
                 y = dec_params['start']['lat'])
         finish = Point(x = dec_params['finish']['lng'],
                 y = dec_params['finish']['lat'])
-        drive_range = int(dec_params['range'])
+        drive_range = int(dec_params['range']) * 1000 # km -> m
         types = dec_params['types']
         zoom = int(dec_params['zoom'])
         route = planner.plan(start, finish, drive_range, types, zoom)
