@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 
-from bottle import Bottle, request, static_file, view, template
+from bottle import Bottle, TEMPLATE_PATH, request, static_file, view, template
 
 import os
 from mako.template import Template
@@ -20,6 +20,9 @@ if __name__ == '__main__':
     app = Bottle()
 
     APP_BASEDIR = os.path.dirname(os.path.realpath(__file__))
+
+    # Finding templates from anywhere
+    TEMPLATE_PATH.insert(0, os.path.join(APP_BASEDIR, 'views'))
 
     db = psycopg2.connect(user = app_config.DB_USER,
         password = app_config.DB_PASSWORD, dbname = app_config.DB_NAME)
