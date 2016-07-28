@@ -4,29 +4,11 @@ import sys
 
 import psycopg2
 from postgis import register, Point
-
-import requests
-
 import json
 
+import queries.db as db_queries
+import queries.routing as routing_queries
 import app_config
-
-def getEuclideanDistance(p1, p2, cursor):
-    "Returns the distance (crow-fly) between 2 points (in meters)"
-
-    query = "SELECT ST_Distance(ST_GeographyFromText('%s'), " \
-        "ST_GeographyFromText('%s'));" % (p1, p2)
-    cursor.execute(query)
-    return int(next(cursor)[0])
-
-def getEffectiveDistance(p1, p2):
-    "Returns the distance (using roads) between 2 points (in meters)"
-
-    query = app_config.OSRM_URL + \
-        'viaroute?loc=%f,%f&loc=%f,%f&alt=false&geometry=false' \
-        % (p1.y, p1.x, p2.y, p2.x)
-    response = requests.get(url = query)
-    return response.json()['route_summary']['total_distance']
 
 class RoutePlanner:
     "Computes a route using an optimized set of charging stations as viapoints"
@@ -38,68 +20,22 @@ class RoutePlanner:
         self.station_types = station_types
         self.cursor = cursor
 
-    def getCompleteRoutingInstructions(self, charge_points, zoom_level):
-        result = charge_points
-        if not result['route_found']:
-            return result
-        query = app_config.OSRM_URL + \
-            'viaroute?loc=%f,%f' % (self.start.y, self.start.x)
-        for point in charge_points['stations']:
-            query = query + '&loc=%f,%f' \
-                % (point['position'].y, point['position'].x)
-        query = query + \
-            '&loc=%f,%f&z=%d&instructions=true&alt=false&compression=false' \
-            % (self.finish.y, self.finish.x, zoom_level)
-        response = requests.get(url = query)
-        response = response.json()
-        result['route_geometry'] = response['route_geometry']
-        result['route_instructions'] = response['route_instructions']
-        result['route_summary'] = response['route_summary']
-        return result
-
-    def getCandidateChargePoints(self, start, finish, max_dist_from_finish):
-        str_types = str(self.station_types)[1:-1]
-        if '' == str_types:
-            return []
-
-        query = "SELECT ST_AsGeoJSON(position), address, station.id " \
-                "FROM station, station_type " \
-                "WHERE station_type.id = type " \
-                "AND type IN (%s) " \
-                "AND ST_Distance(position, ST_GeographyFromText('%s')) " \
-                "< %d " \
-                "AND ST_Distance(position, ST_GeographyFromText('%s')) " \
-                "> %d " \
-                "AND ST_Distance(position, ST_GeographyFromText('%s')) < %d " \
-                "ORDER BY ST_Distance(position, ST_GeographyFromText('%s'));"
-        query = query % (str_types, start, self.drive_range, start,
-                self.drive_range / 2, finish, max_dist_from_finish, finish)
-        self.cursor.execute(query)
-        candidates = []
-        for row in self.cursor:
-            jsonRowCoords = json.loads(row[0])['coordinates']
-            candidates.append({
-                'position': Point(x = jsonRowCoords[0], y = jsonRowCoords[1]),
-                #'address': row[1],
-                'id': row[2]
-            })
-        return candidates
-
     def plan(self, zoom_level = 0):
         result = self.findChargePoints(self.start, self.finish, #[],
-            sys.maxsize)
-        return self.getCompleteRoutingInstructions(result, zoom_level)
+                sys.maxsize)
+        return routing_queries.get_routing_instructions(self.start, self.finish,
+                result, zoom_level)
 
     def findChargePoints(self, start, finish, #blacklisted_stations,
             previous_dist_from_finish):
-        if getEuclideanDistance(start, finish, self.cursor) \
-            < self.drive_range \
-            and getEffectiveDistance(start, finish) < self.drive_range:
+        if db_queries.get_euclidean_distance(start, finish) < self.drive_range \
+                and routing_queries.get_effective_distance(start, finish) \
+                < self.drive_range:
             # No need for intermediate charging station
             return {'route_found': True, 'stations': []}
 
-        candidates = self.getCandidateChargePoints(start, finish,
-            previous_dist_from_finish)
+        candidates = db_queries.get_candidate_charge_points(start, finish,
+                previous_dist_from_finish, self.station_types, self.drive_range)
         #candidates_positions = []
         #for candidate in candidates:
         #    candidates_positions = candidates_positions + \
@@ -110,13 +46,13 @@ class RoutePlanner:
             #print(previous_stations)
             cand_pos = candidate['position']
             #if cand_pos not in blacklisted_stations \
-            if getEffectiveDistance(start, cand_pos) \
+            if routing_queries.get_effective_distance(start, cand_pos) \
                 < self.drive_range:
                 # Add this station to the trip and go on
                 #curr_blacklisted_stations = blacklisted_stations + \
                 #    candidates_positions
-                curr_eucl_dist = getEuclideanDistance(cand_pos, finish,
-                    self.cursor)
+                curr_eucl_dist = db_queries.get_euclidean_distance(cand_pos,
+                        finish)
                 next_stations = self.findChargePoints(cand_pos, self.finish,
                     #curr_blacklisted_stations,
                     curr_eucl_dist)
@@ -152,8 +88,8 @@ class CachedRoutePlanner:
                 charge_points = {}
                 charge_points['stations'] = self.cached_queries[key]['stations']
                 charge_points['route_found'] = (charge_points['stations'] != [])
-                result = planner.getCompleteRoutingInstructions(charge_points,
-                    zoom)
+                result = routing_queries.get_routing_instructions(start, finish,
+                        charge_points, zoom)
                 self.strip_station_positions(result)
                 self.cached_queries[key][zoom] = result
                 return result

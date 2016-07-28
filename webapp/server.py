@@ -10,6 +10,8 @@ from postgis import register, Point
 
 import json
 
+import queries.db as db_queries
+
 from route_planner import CachedRoutePlanner
 
 import app_config
@@ -29,47 +31,16 @@ if __name__ == '__main__':
     cursor = db.cursor()
     register(cursor)
 
+    db_queries._cursor = cursor
     planner = CachedRoutePlanner(cursor)
-
-    def getStationTypes():
-        query = "SELECT id, name " \
-                "FROM station_type " \
-                "ORDER BY id;"
-        cursor.execute(query)
-        result = []
-        for row in cursor:
-            result.append({'id': row[0], 'name': row[1]})
-        return result
-
-    def getStations():
-        query = "SELECT id, name, address, ST_AsGeoJSON(position), source, " \
-                "remarks " \
-                "FROM station " \
-                "WHERE type = %d;"
-        result = {}
-        for s_type in getStationTypes():
-            cursor.execute(query % (s_type['id']))
-            stations = []
-            for row in cursor:
-                jsonRowCoords = json.loads(row[3])['coordinates']
-                stations.append({
-                    'id': row[0],
-                    'name': row[1],
-                    'address': row[2],
-                    'position': [jsonRowCoords[1], jsonRowCoords[0]],
-                    'source': row[4],
-                    'remarks': row[5]
-                })
-            result[s_type['id']] = stations
-        return result
 
     @app.route('/')
     @view('index')
     def index():
         return dict(tile_server=app_config.TILE_SERVER,
                 photon_url=app_config.PHOTON_URL,
-                station_types=getStationTypes(),
-                stations=getStations())
+                station_types=db_queries.get_station_types(),
+                stations=db_queries.get_stations())
 
     @app.route('/route')
     def route():
