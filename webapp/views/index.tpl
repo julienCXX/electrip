@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <title>Electrip − Calculateur d’itinéraires pour véhicules électriques</title>
-        <link rel="stylesheet" href="leaflet/leaflet.css" />
+        <link rel="stylesheet" href="/static/css/leaflet.css" />
         <style type="text/css">
 body {
     margin: 0;
@@ -112,7 +112,7 @@ body {
             onclick="sendForm()"/>
         </form>
 
-        <script type="text/javascript" src="leaflet/leaflet.js"></script>
+        <script type="text/javascript" src="/static/js/leaflet.js"></script>
         <script type="text/javascript">
 var map = L.map('map', {zoomControl: false});
 map.setView([45.19329, 5.76798], 15);
@@ -122,6 +122,8 @@ var mqLayer = L.tileLayer("{{!tile_server['url']}}",
     {{!tile_server['parameters']}});
 
 mqLayer.addTo(map);
+
+L.Icon.Default.imagePath = '/static/img/map';
 
 var fromMarker = L.marker([0, 0]);
 var isFromMarkerSet = false;

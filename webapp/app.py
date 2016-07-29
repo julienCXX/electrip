@@ -52,9 +52,9 @@ if __name__ == '__main__':
         route = planner.plan(start, finish, drive_range, types, zoom)
         return json.dumps(route)
 
-    @app.route('/leaflet/<filename:path>')
+    @app.route('/static/<filename:path>')
     def send_static(filename):
         return static_file(filename,
-                           root=os.path.join(APP_BASEDIR, 'frontend/leaflet'))
+                           root=os.path.join(APP_BASEDIR, 'static'))
 
     app.run()
