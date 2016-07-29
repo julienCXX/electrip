@@ -74,7 +74,8 @@ class CachedRoutePlanner:
                                        station_types, self.cursor)
                 charge_pts = {}
                 charge_pts['stations'] = self.cached_queries[key]['stations']
-                charge_pts['route_found'] = (charge_pts['stations'] != [])
+                charge_pts['route_found'] = \
+                    self.cached_queries[key]['route_found']
                 result = routing_queries.get_routing_instructions(
                     start, finish, charge_pts, zoom)
                 self.strip_station_positions(result)
@@ -86,6 +87,7 @@ class CachedRoutePlanner:
             result = planner.plan(zoom)
             self.cached_queries[key] = {}
             self.cached_queries[key]['stations'] = result['stations']
+            self.cached_queries[key]['route_found'] = result['route_found']
             self.strip_station_positions(result)
             self.cached_queries[key][zoom] = result
             return result
