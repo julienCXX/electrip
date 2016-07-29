@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>Electrip − Calculateur d’itinéraires pour véhicules électriques</title>
+        <title>Electrip − Electric Vehicle Trip Planning</title>
         <link rel="stylesheet" href="/static/css/leaflet.css" />
         <style type="text/css">
 body {
@@ -75,40 +75,40 @@ body {
         <div id="map"></div>
         <form id="form">
             <div class="input-container">
-                <label for="from">De</label>
+                <label for="from">From</label>
                 <div class="dropdown-container">
                     <input id="from" name="from" type="text" autocomplete="off" />
                     <div class="dropdown">
-                        <span class="show">Aucun résultat</span>
+                        <span class="show">No result</span>
                         <ul></ul>
                     </div>
                 </div>
-                <button>Ma position</button>
+                <button>My position</button>
             </div>
             <div class="input-container">
-                <label for="to">À</label>
+                <label for="to">To</label>
                 <div class="dropdown-container">
                     <input id="to" name="to" type="text" autocomplete="off" />
                     <div class="dropdown">
-                        <span class="show">Aucun résultat</span>
+                        <span class="show">No result</span>
                         <ul></ul>
                     </div>
                 </div>
-                <button>Ma position</button>
+                <button>My position</button>
             </div>
             <div class="input-container">
-                <label for="range">Autonomie</label>
+                <label for="range">Range</label>
                 <input id="range" name="range" type="number" min="0"
-                value="200"/>&nbsp;km
+                value="200"/>km
             </div>
-            Types de bornes de recharge&nbsp;:<br />
+            Charging station types:<br />
             % for s_type in station_types:
                 <input id="t_{{s_type['id']}}" name="t_{{s_type['id']}}"
                 type="checkbox" checked
                 onchange="toggleStationLayer({{s_type['id']}}, this.checked)"/>
                 <label for="t_{{s_type['id']}}">{{s_type['name']}}</label><br />
             % end
-            <input type="button" value="Calculer l’itinéraire"
+            <input type="button" value="Plan trip"
             onclick="sendForm()"/>
         </form>
 
@@ -337,7 +337,7 @@ var routeSuccessCb = function(response) {
     var objResponse = JSON.parse(response);
     console.log(objResponse);
     if (!objResponse['route_found']) {
-        alert('Pas d’itinéraire trouvé');
+        alert('No route found');
         return;
     }
     routePolyline.setLatLngs(objResponse['route_geometry']);
@@ -349,11 +349,11 @@ var routeFailureCb = function(status) {
 
 var sendForm = function() {
     if (!isFromMarkerSet) {
-        alert('Veuillez spécifier un point de départ');
+        alert('Please set a start point');
         return;
     }
     if (!isToMarkerSet) {
-        alert('Veuillez spécifier un point d’arrivée');
+        alert('Please set a finish point');
         return;
     }
 
