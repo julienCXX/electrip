@@ -1,3 +1,4 @@
+import sys
 import requests
 
 import app_config
@@ -10,7 +11,12 @@ def get_effective_distance(p1, p2):
         'viaroute?loc=%f,%f&loc=%f,%f&alt=false&geometry=false' \
         % (p1.y, p1.x, p2.y, p2.x)
     response = requests.get(url=query)
-    return response.json()['route_summary']['total_distance']
+    r_json = response.json()
+    if 'route_summary' in r_json:
+        return r_json['route_summary']['total_distance']
+
+    # No route available between points
+    return sys.maxsize
 
 
 def get_routing_instructions(start, finish, via_points, zoom_level):
@@ -26,6 +32,10 @@ def get_routing_instructions(start, finish, via_points, zoom_level):
         % (finish.y, finish.x, zoom_level)
     response = requests.get(url=query)
     response = response.json()
+    if 'route_geometry' not in response:
+        # No route available between points (TODO: temporary workaround)
+        result['route_found'] = False
+        return result
     result['route_geometry'] = response['route_geometry']
     # result['route_instructions'] = response['route_instructions']
     result['route_summary'] = response['route_summary']
