@@ -123,11 +123,32 @@ var mqLayer = L.tileLayer("{{!tile_server['url']}}",
 
 mqLayer.addTo(map);
 
-L.Icon.Default.imagePath = '/static/img/map';
+var mapImgPath = '/static/img/map';
+var defMarkerSize = [27, 41];
+var defMarkerAnchorPos = [14, 40];
+var defMarkerPopupAnchorPos = [0, -26];
+L.Icon.Default.imagePath = mapImgPath;
 
-var fromMarker = L.marker([0, 0]);
+var blueMarkerIcon = L.icon({
+    iconUrl: mapImgPath + '/marker-icon-blue.png',
+    iconSize: defMarkerSize,
+    iconAnchor: defMarkerAnchorPos,
+    popupAnchor: defMarkerPopupAnchorPos
+});
+var greenMarkerIcon = L.icon({
+    iconUrl: mapImgPath + '/marker-icon-green.png',
+    iconSize: defMarkerSize,
+    iconAnchor: defMarkerAnchorPos
+});
+var redMarkerIcon = L.icon({
+    iconUrl: mapImgPath + '/marker-icon-red.png',
+    iconSize: defMarkerSize,
+    iconAnchor: defMarkerAnchorPos
+});
+
+var fromMarker = L.marker([0, 0], {icon: greenMarkerIcon});
 var isFromMarkerSet = false;
-var toMarker = L.marker([0, 0]);
+var toMarker = L.marker([0, 0], {icon: redMarkerIcon});
 var isToMarkerSet = false;
 
 var routePolyline = L.polyline({color: 'blue'});
@@ -305,7 +326,8 @@ for (var sType in stations) {
     var typedStations = stations[sType];
     var stationMarkerLayer = [];
     for (var s in typedStations) {
-        stationMarkerLayer.push(L.marker(typedStations[s].position).bindPopup(
+        stationMarkerLayer.push(L.marker(typedStations[s].position,
+            {icon: blueMarkerIcon}).bindPopup(
             '<b>' + typedStations[s].name + '</b><br />'
             + typedStations[s].address + '<br />Source&nbsp;: '
             + typedStations[s].source + '<br /><em>' + typedStations[s].remarks
