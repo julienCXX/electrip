@@ -73,7 +73,7 @@ body {
     </head>
     <body>
         <div id="map"></div>
-        <form id="form">
+        <form id="form" onsubmit="sendForm(); return false">
             <div class="input-container">
                 <label for="from">From</label>
                 <div class="dropdown-container">
@@ -83,7 +83,7 @@ body {
                         <ul></ul>
                     </div>
                 </div>
-                <button>My position</button>
+                <!--<button>My position</button>-->
             </div>
             <div class="input-container">
                 <label for="to">To</label>
@@ -94,12 +94,12 @@ body {
                         <ul></ul>
                     </div>
                 </div>
-                <button>My position</button>
+                <!--<button>My position</button>-->
             </div>
             <div class="input-container">
                 <label for="range">Range</label>
                 <input id="range" name="range" type="number" min="0"
-                value="200"/>km
+                value="200" autocomplete="off" onchange="invalidateTrip()"/>km
             </div>
             Charging station types:<br />
             % for s_type in station_types:
@@ -108,8 +108,8 @@ body {
                 onchange="toggleStationLayer({{s_type['id']}}, this.checked)"/>
                 <label for="t_{{s_type['id']}}">{{s_type['name']}}</label><br />
             % end
-            <input type="button" value="Plan trip"
-            onclick="sendForm()"/>
+            <br />
+            <input id="submit_btn" type="submit" value="Plan trip"/>
         </form>
 
         <script type="text/javascript" src="/static/js/leaflet.js"></script>
@@ -155,6 +155,33 @@ var routePolyline = L.polyline({color: 'blue'});
 routePolyline.addTo(map);
 
 var photonBaseUrl = '{{!photon_url}}';
+
+var hasValidTrip = false;
+
+var invalidateTrip = function() {
+    hasValidTrip = false;
+    routePolyline.setLatLngs([]);
+};
+
+var setRouteStatus = function(isComputingRoute) {
+    // See: http://gis.stackexchange.com/questions/54454/disable-leaflet-interaction-temporary
+    var inputs = document.getElementsByTagName('input');
+    for (i = 0; i < inputs.length; i++) {
+        inputs[i].disabled = isComputingRoute;
+    }
+    var submitBtn = document.getElementById('submit_btn');
+    if (isComputingRoute) {
+        map._handlers.forEach(function(handler) {
+            handler.disable();
+        });
+        submitBtn.value = 'Please wait';
+    } else {
+        map._handlers.forEach(function(handler) {
+            handler.enable();
+        });
+        submitBtn.value = 'Plan trip';
+    }
+};
 
 var makeAjax = function(url, success, failure) {
     var xhr = new XMLHttpRequest();
@@ -235,7 +262,16 @@ var ddListCb = function(event) {
     } else {
         isToMarkerSet = true;
     }
-    map.panTo(latLng);
+
+    if (hasValidTrip) {
+        invalidateTrip();
+    }
+    if (isFromMarkerSet && isToMarkerSet) {
+        map.fitBounds(L.latLngBounds(
+            fromMarker.getLatLng(), toMarker.getLatLng()));
+    } else {
+        map.panTo(latLng);
+    }
 };
 
 var populateDDList = function(list, content) {
@@ -323,6 +359,7 @@ inputTo.addEventListener('blur', function() {
 var stations = {{!stations}};
 var stationMarkerLayers = {};
 for (var sType in stations) {
+    document.getElementById('t_' + sType).checked = true;
     var typedStations = stations[sType];
     var stationMarkerLayer = [];
     for (var s in typedStations) {
@@ -343,6 +380,7 @@ var toggleStationLayer = function(sId, enable) {
     } else {
         map.removeLayer(stationMarkerLayers[sId]);
     }
+    invalidateTrip();
 }
 
 var getSelectedStationTypes = function() {
@@ -356,6 +394,7 @@ var getSelectedStationTypes = function() {
 }
 
 var routeSuccessCb = function(response) {
+    setRouteStatus(false);
     var objResponse = JSON.parse(response);
     console.log(objResponse);
     if (!objResponse['route_found']) {
@@ -363,9 +402,14 @@ var routeSuccessCb = function(response) {
         return;
     }
     routePolyline.setLatLngs(objResponse['route_geometry']);
+    if (!hasValidTrip) {
+        map.fitBounds(routePolyline.getBounds());
+        hasValidTrip = true;
+    }
 }
 
 var routeFailureCb = function(status) {
+    setRouteStatus(false);
     alert('Failed to send route instructions. Status: ' + status);
 }
 
@@ -387,12 +431,13 @@ var sendForm = function() {
     params['zoom'] = map.getZoom();
 
     jsonParams = JSON.stringify(params);
+    setRouteStatus(true);
     makeAjax('/route?params=' + jsonParams, routeSuccessCb, routeFailureCb);
 }
 
 map.on('zoomend', function(e) {
-    if (isFromMarkerSet && isToMarkerSet) {
-        sendForm();
+    if (hasValidTrip) {
+        typeWatch(sendForm, 500);
     }
 });
         </script>
