@@ -1,0 +1,17 @@
+Files: webapp/* except webapp/static/*, src/utils/importToDb.py
+License: Apache 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+Copyright: (c) 2016 julienCXX <software@chmodplusx.eu>
+
+Files: webapp/static/*/leaflet.*, webapp/static/img/map/{layers*,{marker-icon{,-2x},shadow}}.png
+License: All rights reserved (https://github.com/Leaflet/Leaflet/blob/master/LICENSE)
+Copyright: (c) 2010-2016, Vladimir Agafonkin
+           (c) 2010-2011, CloudMade
+
+Files: raw_assets/SagarShastry-PlaceMark.svg
+License: CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+Copyright: (c) 2012 sagar_ns
+Source: https://openclipart.org/detail/169978/placemark
+
+Files: raw_assets/marker*, other in webapp/static/img/map/
+License: CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/)
+Copyright: (c) 2016 julienCXX <software@chmodplusx.eu>, adapted from https://openclipart.org/detail/169978/placemark
