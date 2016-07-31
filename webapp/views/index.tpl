@@ -117,9 +117,18 @@ body {
 var map = L.map('map', {zoomControl: false});
 map.setView([45.19329, 5.76798], 15);
 map.addControl(L.control.zoom({position: 'topright'}));
+
+var tileParams = {{!tile_server['parameters']}};
+tileParams['attribution'] =
+    "<a href='https://github.com/julienCXX/electrip'>Electrip "
+    + "v{{!version}}</a> | "
+    + "Powered by <a href='http://photon.komoot.de/'>Photon</a> and "
+    + "<a href='http://project-osrm.org/'>OSRM</a> | "
+    + tileParams['attribution'];
+
 // See: http://harrywood.co.uk/maps/examples/leaflet/mapquest.view.html
 var mqLayer = L.tileLayer("{{!tile_server['url']}}",
-    {{!tile_server['parameters']}});
+    tileParams);
 
 mqLayer.addTo(map);
 

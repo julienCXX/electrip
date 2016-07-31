@@ -38,7 +38,7 @@ if __name__ == '__main__':
         return dict(tile_server=app_config.TILE_SERVER,
                     photon_url=app_config.PHOTON_URL,
                     station_types=db_queries.get_station_types(),
-                    stations=db_queries.get_stations())
+                    stations=db_queries.get_stations(), version=__version__)
 
     @app.route('/route')
     def route():
