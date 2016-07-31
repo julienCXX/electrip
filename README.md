@@ -14,11 +14,11 @@ Created for the Ensimag’s Open Data Challenge, year 2015-2016
 # Installation
 * Execute the contents of `data/sql/create_structure.sql` and then, the output
   of `src/utils/importToDb.py`
-* Copy the file `src/app/app_config.py.default` to `src/app/app_config.py` and
+* Copy the file `webapp/app_config.py.default` to `webapp/app_config.py` and
   edit it to fit your needs
 
 # Execution
-* Run the script located at `src/app/server.py`
+* Run the script located at `webapp/app.py`
 * Open a Web browser at the URL `localhost:8080`
 
 # About the `src/challenge` directory
