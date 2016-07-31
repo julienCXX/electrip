@@ -5,14 +5,8 @@ Created for the Ensimag’s Open Data Challenge, year 2015-2016
 
 # Prerequisites
 * A PostgreSQL DB with PostGIS extension
-* Python 3 and the following modules (install with
-  `pip install --user <module>`):
-    * psycopg2
-    * psycopg-postgis
-    * requests
-    * json
-    * cherrypy
-    * mako
+* Python 3 and the modules described in `requirements.txt` (install with
+  `pip install -r requirements.txt`)
 * A working Photon geocoding instance
 * A working tile server instance
 * A working OSRM instance
