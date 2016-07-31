@@ -13,6 +13,7 @@ import queries.db as db_queries
 from route_planner import CachedRoutePlanner
 import app_config
 
+__version__ = '0.1'
 
 if __name__ == '__main__':
     app = Bottle()
