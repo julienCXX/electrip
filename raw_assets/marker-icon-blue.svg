@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.1"
+   viewBox="0 0 97.121 148.62"
+   id="svg2">
+  <defs
+     id="defs9" />
+  <g
+     transform="translate(-434.69 -347.75)"
+     id="layer1">
+    <path
+       d="m483.21 349.07c-26.086 0-47.197 21.194-47.197 47.28 0 29.694 21.474 40.357 29.27 51.847 7.7962 11.49 16.549 24.129 17.926 46.845 1.3793-22.652 9.0355-33.682 17.51-46.845 8.4743-13.163 29.77-25.761 29.77-51.847s-21.194-47.28-47.28-47.28z"
+       style="color:#000000;stroke:#000000;stroke-width:2.645;fill:#3434d1;fill-opacity:1"
+       id="rect3780" />
+    <path
+       transform="matrix(2.645 0 0 2.645 -719.05 -569.22)"
+       d="m 459.64284,364.77289 a 5.0892859,5.0892859 0 0 1 -5.08928,5.08928 5.0892859,5.0892859 0 0 1 -5.08929,-5.08928 5.0892859,5.0892859 0 0 1 5.08929,-5.08929 5.0892859,5.0892859 0 0 1 5.08928,5.08929 z"
+       style="color:#000000;fill:#000000"
+       id="path3793" />
+  </g>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
+        <dc:publisher>
+          <cc:Agent
+             rdf:about="http://openclipart.org/">
+            <dc:title>Openclipart</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:title></dc:title>
+        <dc:date>2012-05-11T03:36:53</dc:date>
+        <dc:description>This is a generic placemark symbol used in maps.</dc:description>
+        <dc:source>https://openclipart.org/detail/169978/placemark-by-sagar_ns</dc:source>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>sagar_ns</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>baloon</rdf:li>
+            <rdf:li>landmark</rdf:li>
+            <rdf:li>maps</rdf:li>
+            <rdf:li>marker</rdf:li>
+            <rdf:li>placemark</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>

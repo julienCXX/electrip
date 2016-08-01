@@ -2,8 +2,8 @@
 <html>
     <head>
         <meta charset="utf-8" />
-        <title>Electrip − Calculateur d’itinéraires pour véhicules électriques</title>
-        <link rel="stylesheet" href="leaflet/leaflet.css" />
+        <title>Electrip − Electric Vehicle Trip Planning</title>
+        <link rel="stylesheet" href="/static/css/leaflet.css" />
         <style type="text/css">
 body {
     margin: 0;
@@ -73,65 +73,124 @@ body {
     </head>
     <body>
         <div id="map"></div>
-        <form id="form">
+        <form id="form" onsubmit="sendForm(); return false">
             <div class="input-container">
-                <label for="from">De</label>
+                <label for="from">From</label>
                 <div class="dropdown-container">
                     <input id="from" name="from" type="text" autocomplete="off" />
                     <div class="dropdown">
-                        <span class="show">Aucun résultat</span>
+                        <span class="show">No result</span>
                         <ul></ul>
                     </div>
                 </div>
-                <button>Ma position</button>
+                <!--<button>My position</button>-->
             </div>
             <div class="input-container">
-                <label for="to">À</label>
+                <label for="to">To</label>
                 <div class="dropdown-container">
                     <input id="to" name="to" type="text" autocomplete="off" />
                     <div class="dropdown">
-                        <span class="show">Aucun résultat</span>
+                        <span class="show">No result</span>
                         <ul></ul>
                     </div>
                 </div>
-                <button>Ma position</button>
+                <!--<button>My position</button>-->
             </div>
             <div class="input-container">
-                <label for="range">Autonomie</label>
+                <label for="range">Range</label>
                 <input id="range" name="range" type="number" min="0"
-                value="200"/>&nbsp;km
+                value="200" autocomplete="off" onchange="invalidateTrip()"/>km
             </div>
-            Types de bornes de recharge&nbsp;:<br />
+            Charging station types:<br />
             % for s_type in station_types:
-            <input id="t_${s_type['id']}" name="t_${s_type['id']}"
-            type="checkbox" checked
-            onchange="toggleStationLayer(${s_type['id']}, this.checked)"/>
-            <label for="t_${s_type['id']}">${s_type['name']}</label><br />
-            % endfor
-            <input type="button" value="Calculer l’itinéraire"
-            onclick="sendForm()"/>
+                <input id="t_{{s_type['id']}}" name="t_{{s_type['id']}}"
+                type="checkbox" checked
+                onchange="toggleStationLayer({{s_type['id']}}, this.checked)"/>
+                <label for="t_{{s_type['id']}}">{{s_type['name']}}</label><br />
+            % end
+            <br />
+            <input id="submit_btn" type="submit" value="Plan trip"/>
         </form>
 
-        <script type="text/javascript" src="leaflet/leaflet.js"></script>
+        <script type="text/javascript" src="/static/js/leaflet.js"></script>
         <script type="text/javascript">
 var map = L.map('map', {zoomControl: false});
-map.setView([45.19329, 5.76798], 15);
+map.setView([{{map_def['lat']}}, {{map_def['lng']}}], {{map_def['zoom']}});
 map.addControl(L.control.zoom({position: 'topright'}));
+
+var tileParams = {{!tile_server['parameters']}};
+tileParams['attribution'] =
+    "<a href='https://github.com/julienCXX/electrip'>Electrip "
+    + "v{{!version}}</a> | "
+    + "Powered by <a href='http://photon.komoot.de/'>Photon</a> and "
+    + "<a href='http://project-osrm.org/'>OSRM</a> | "
+    + tileParams['attribution'];
+
 // See: http://harrywood.co.uk/maps/examples/leaflet/mapquest.view.html
-var mqLayer = L.tileLayer("${tile_server['url']}",
-    ${tile_server['parameters']});
+var mqLayer = L.tileLayer("{{!tile_server['url']}}",
+    tileParams);
 
 mqLayer.addTo(map);
 
-var fromMarker = L.marker([0, 0]);
+var mapImgPath = '/static/img/map';
+var defMarkerSize = [27, 41];
+var defMarkerAnchorPos = [14, 40];
+var defMarkerPopupAnchorPos = [0, -26];
+L.Icon.Default.imagePath = mapImgPath;
+
+var blueMarkerIcon = L.icon({
+    iconUrl: mapImgPath + '/marker-icon-blue.png',
+    iconSize: defMarkerSize,
+    iconAnchor: defMarkerAnchorPos,
+    popupAnchor: defMarkerPopupAnchorPos
+});
+var greenMarkerIcon = L.icon({
+    iconUrl: mapImgPath + '/marker-icon-green.png',
+    iconSize: defMarkerSize,
+    iconAnchor: defMarkerAnchorPos
+});
+var redMarkerIcon = L.icon({
+    iconUrl: mapImgPath + '/marker-icon-red.png',
+    iconSize: defMarkerSize,
+    iconAnchor: defMarkerAnchorPos
+});
+
+var fromMarker = L.marker([0, 0], {icon: greenMarkerIcon});
 var isFromMarkerSet = false;
-var toMarker = L.marker([0, 0]);
+var toMarker = L.marker([0, 0], {icon: redMarkerIcon});
 var isToMarkerSet = false;
 
 var routePolyline = L.polyline({color: 'blue'});
 routePolyline.addTo(map);
 
-var photonBaseUrl = '${photon_url}';
+var photonBaseUrl = '{{!photon_url}}';
+
+var hasValidTrip = false;
+
+var invalidateTrip = function() {
+    hasValidTrip = false;
+    routePolyline.setLatLngs([]);
+};
+
+var setRouteStatus = function(isComputingRoute) {
+    // See: http://gis.stackexchange.com/questions/54454/disable-leaflet-interaction-temporary
+    var inputs = document.getElementsByTagName('input');
+    for (i = 0; i < inputs.length; i++) {
+        inputs[i].disabled = isComputingRoute;
+    }
+    var submitBtn = document.getElementById('submit_btn');
+    if (isComputingRoute) {
+        map._handlers.forEach(function(handler) {
+            handler.disable();
+        });
+        submitBtn.value = 'Please wait';
+    } else {
+        map._handlers.forEach(function(handler) {
+            handler.enable();
+        });
+        submitBtn.value = 'Plan trip';
+    }
+};
 
 var makeAjax = function(url, success, failure) {
     var xhr = new XMLHttpRequest();
@@ -212,7 +271,16 @@ var ddListCb = function(event) {
     } else {
         isToMarkerSet = true;
     }
-    map.panTo(latLng);
+
+    if (hasValidTrip) {
+        invalidateTrip();
+    }
+    if (isFromMarkerSet && isToMarkerSet) {
+        map.fitBounds(L.latLngBounds(
+            fromMarker.getLatLng(), toMarker.getLatLng()));
+    } else {
+        map.panTo(latLng);
+    }
 };
 
 var populateDDList = function(list, content) {
@@ -297,13 +365,15 @@ inputTo.addEventListener('blur', function() {
 });
 
 /* Generated station list */
-var stations = ${stations};
+var stations = {{!stations}};
 var stationMarkerLayers = {};
 for (var sType in stations) {
+    document.getElementById('t_' + sType).checked = true;
     var typedStations = stations[sType];
     var stationMarkerLayer = [];
     for (var s in typedStations) {
-        stationMarkerLayer.push(L.marker(typedStations[s].position).bindPopup(
+        stationMarkerLayer.push(L.marker(typedStations[s].position,
+            {icon: blueMarkerIcon}).bindPopup(
             '<b>' + typedStations[s].name + '</b><br />'
             + typedStations[s].address + '<br />Source&nbsp;: '
             + typedStations[s].source + '<br /><em>' + typedStations[s].remarks
@@ -319,6 +389,7 @@ var toggleStationLayer = function(sId, enable) {
     } else {
         map.removeLayer(stationMarkerLayers[sId]);
     }
+    invalidateTrip();
 }
 
 var getSelectedStationTypes = function() {
@@ -332,26 +403,32 @@ var getSelectedStationTypes = function() {
 }
 
 var routeSuccessCb = function(response) {
+    setRouteStatus(false);
     var objResponse = JSON.parse(response);
     console.log(objResponse);
     if (!objResponse['route_found']) {
-        alert('Pas d’itinéraire trouvé');
+        alert('No route found');
         return;
     }
     routePolyline.setLatLngs(objResponse['route_geometry']);
+    if (!hasValidTrip) {
+        map.fitBounds(routePolyline.getBounds());
+        hasValidTrip = true;
+    }
 }
 
 var routeFailureCb = function(status) {
+    setRouteStatus(false);
     alert('Failed to send route instructions. Status: ' + status);
 }
 
 var sendForm = function() {
     if (!isFromMarkerSet) {
-        alert('Veuillez spécifier un point de départ');
+        alert('Please set a start point');
         return;
     }
     if (!isToMarkerSet) {
-        alert('Veuillez spécifier un point d’arrivée');
+        alert('Please set a finish point');
         return;
     }
 
@@ -363,12 +440,13 @@ var sendForm = function() {
     params['zoom'] = map.getZoom();
 
     jsonParams = JSON.stringify(params);
+    setRouteStatus(true);
     makeAjax('/route?params=' + jsonParams, routeSuccessCb, routeFailureCb);
 }
 
 map.on('zoomend', function(e) {
-    if (isFromMarkerSet && isToMarkerSet) {
-        sendForm();
+    if (hasValidTrip) {
+        typeWatch(sendForm, 500);
     }
 });
         </script>
