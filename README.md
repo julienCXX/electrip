@@ -3,6 +3,17 @@ A trip planning service for electric vehicle owners
 
 Created for the Ensimag’s Open Data Challenge, year 2015-2016
 
+# Changelog
+* 0.1
+  * Refactoring and cleanup of backend code
+  * Various bug fixes
+  * Switch to Bottle framework
+  * Better frontend usability
+* COD defense
+  * Basic data import
+  * Geocoding and route computation
+  * Car comparison (not fitted in)
+
 # Prerequisites
 * A PostgreSQL DB with PostGIS extension
 * Python 3 and the modules described in `requirements.txt` (install with

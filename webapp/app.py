@@ -13,6 +13,7 @@ import queries.db as db_queries
 from route_planner import CachedRoutePlanner
 import app_config
 
+__version__ = '0.1'
 
 if __name__ == '__main__':
     app = Bottle()
@@ -36,8 +37,9 @@ if __name__ == '__main__':
     def index():
         return dict(tile_server=app_config.TILE_SERVER,
                     photon_url=app_config.PHOTON_URL,
+                    map_def=app_config.INITIAL_MAP_SETTINGS,
                     station_types=db_queries.get_station_types(),
-                    stations=db_queries.get_stations())
+                    stations=db_queries.get_stations(), version=__version__)
 
     @app.route('/route')
     def route():
