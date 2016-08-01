@@ -115,7 +115,7 @@ body {
         <script type="text/javascript" src="/static/js/leaflet.js"></script>
         <script type="text/javascript">
 var map = L.map('map', {zoomControl: false});
-map.setView([45.19329, 5.76798], 15);
+map.setView([{{map_def['lat']}}, {{map_def['lng']}}], {{map_def['zoom']}});
 map.addControl(L.control.zoom({position: 'topright'}));
 
 var tileParams = {{!tile_server['parameters']}};

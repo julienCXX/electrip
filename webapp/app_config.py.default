@@ -17,6 +17,8 @@ TILE_SERVER = {
 PHOTON_URL = 'http://photon.komoot.de/'
 OSRM_URL = 'http://router.project-osrm.org/'
 
+INITIAL_MAP_SETTINGS = {'lat': 47, 'lng': 1, 'zoom': 6}
+
 # PostGIS DB credentials
 # Adapt it to your needs
 DB_USER = ''

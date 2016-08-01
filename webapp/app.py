@@ -37,6 +37,7 @@ if __name__ == '__main__':
     def index():
         return dict(tile_server=app_config.TILE_SERVER,
                     photon_url=app_config.PHOTON_URL,
+                    map_def=app_config.INITIAL_MAP_SETTINGS,
                     station_types=db_queries.get_station_types(),
                     stations=db_queries.get_stations(), version=__version__)
 
