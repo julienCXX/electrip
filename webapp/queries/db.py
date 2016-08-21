@@ -1,9 +1,14 @@
 import json
+import psycopg2
+from postgis import register, Point
 
-from postgis import Point
+import app_config
 
-
-_cursor = None
+_db = psycopg2.connect(user=app_config.DB_USER,
+                       password=app_config.DB_PASSWORD,
+                       dbname=app_config.DB_NAME)
+_cursor = _db.cursor()
+register(_cursor)
 
 
 def get_station_types():

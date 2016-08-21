@@ -9,12 +9,11 @@ import queries.routing as routing_queries
 class RoutePlanner:
     "Computes a route using an optimized set of charging stations as viapoints"
 
-    def __init__(self, start, finish, drive_range, station_types, cursor):
+    def __init__(self, start, finish, drive_range, station_types):
         self.start = start
         self.finish = finish
         self.drive_range = drive_range  # in meters
         self.station_types = station_types
-        self.cursor = cursor
 
     def plan(self, zoom_level=0):
         result = self.findChargePoints(self.start, self.finish, sys.maxsize)
@@ -50,8 +49,7 @@ class RoutePlanner:
 
 
 class CachedRoutePlanner:
-    def __init__(self, cursor):
-        self.cursor = cursor
+    def __init__(self):
         self.cached_queries = {}
 
     def strip_station_positions(self, result):
@@ -71,7 +69,7 @@ class CachedRoutePlanner:
             else:
                 # Stations are already present for this query
                 planner = RoutePlanner(start, finish, drive_range,
-                                       station_types, self.cursor)
+                                       station_types)
                 charge_pts = {}
                 charge_pts['stations'] = self.cached_queries[key]['stations']
                 charge_pts['route_found'] = \
@@ -82,8 +80,7 @@ class CachedRoutePlanner:
                 self.cached_queries[key][zoom] = result
                 return result
         else:
-            planner = RoutePlanner(start, finish, drive_range, station_types,
-                                   self.cursor)
+            planner = RoutePlanner(start, finish, drive_range, station_types)
             result = planner.plan(zoom)
             self.cached_queries[key] = {}
             self.cached_queries[key]['stations'] = result['stations']

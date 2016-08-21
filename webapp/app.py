@@ -5,9 +5,8 @@
 import os
 
 from bottle import Bottle, TEMPLATE_PATH, request, static_file, view
-import psycopg2
-from postgis import register, Point
 import json
+from postgis import Point
 
 import queries.db as db_queries
 from route_planner import CachedRoutePlanner
@@ -22,14 +21,7 @@ APP_BASEDIR = os.path.dirname(os.path.realpath(__file__))
 # Finding templates from anywhere
 TEMPLATE_PATH.insert(0, os.path.join(APP_BASEDIR, 'views'))
 
-db = psycopg2.connect(user=app_config.DB_USER,
-                      password=app_config.DB_PASSWORD,
-                      dbname=app_config.DB_NAME)
-cursor = db.cursor()
-register(cursor)
-
-db_queries._cursor = cursor
-planner = CachedRoutePlanner(cursor)
+planner = CachedRoutePlanner()
 
 
 @application.route('/')
