@@ -3,13 +3,12 @@
 """App entry point"""
 
 import os
-
 from bottle import Bottle, TEMPLATE_PATH, request, static_file, view
 import json
-from postgis import Point
 
 import queries.db as db_queries
 from route_planner import CachedRoutePlanner
+import utils
 import app_config
 
 __version__ = '0.1'
@@ -31,21 +30,21 @@ def index():
                 photon_url=app_config.PHOTON_URL,
                 map_def=app_config.INITIAL_MAP_SETTINGS,
                 station_types=db_queries.get_station_types(),
-                stations=db_queries.get_stations(), version=__version__)
+                stations=db_queries.get_stations_json(), version=__version__)
 
 
 @application.route('/route')
 def find_route():
     dec_params = json.loads(request.query.params or '{}')
-    start = Point(x=dec_params['start']['lng'],
-                  y=dec_params['start']['lat'])
-    finish = Point(x=dec_params['finish']['lng'],
-                   y=dec_params['finish']['lat'])
+    start = utils.coords_to_point((dec_params['start']['lat'],
+                                   dec_params['start']['lng']))
+    finish = utils.coords_to_point((dec_params['finish']['lat'],
+                                    dec_params['finish']['lng']))
     drive_range = int(dec_params['range']) * 1000  # km -> m
     types = dec_params['types']
     zoom = int(dec_params['zoom'])
     route = planner.plan(start, finish, drive_range, types, zoom)
-    return json.dumps(route)
+    return json.dumps(route, default=utils.json_encoder)
 
 
 @application.route('/static/<filename:path>')

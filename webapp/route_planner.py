@@ -1,9 +1,9 @@
 import sys
-
 import json
 
 import queries.db as db_queries
 import queries.routing as routing_queries
+import utils
 
 
 class RoutePlanner:
@@ -31,8 +31,7 @@ class RoutePlanner:
         candidates = db_queries.get_candidate_charge_points(
             start, finish, previous_dist_from_finish, self.station_types,
             self.drive_range)
-        for candidate in candidates:
-            cand_pos = candidate['position']
+        for cand_pos, cand_id in candidates:
             if routing_queries.get_effective_distance(start, cand_pos) \
                     < self.drive_range:
                 # Add this station to the trip and go on
@@ -42,7 +41,7 @@ class RoutePlanner:
                                                       curr_eucl_dist)
                 if next_stations['route_found']:
                     return {'route_found': True,
-                            'stations': [candidate]
+                            'stations': [{'position': cand_pos, 'id': cand_id}]
                             + next_stations['stations']}
 
         return {'route_found': False, 'stations': []}
@@ -59,8 +58,10 @@ class CachedRoutePlanner:
         result['stations'] = light_stations
 
     def plan(self, start, finish, drive_range, station_types, zoom):
-        key = {'start_lng': start.x, 'start_lat': start.y,
-               'finish_lng': finish.x, 'finish_lat': finish.y,
+        t_start = utils.point_to_coords(start)
+        t_finish = utils.point_to_coords(finish)
+        key = {'start_lng': t_start[1], 'start_lat': t_start[0],
+               'finish_lng': t_finish[1], 'finish_lat': t_finish[0],
                'drive_range': drive_range, 'station_types': station_types}
         key = json.dumps(key)
         if key in self.cached_queries:

@@ -103,10 +103,10 @@ body {
             </div>
             Charging station types:<br />
             % for s_type in station_types:
-                <input id="t_{{s_type['id']}}" name="t_{{s_type['id']}}"
+                <input id="t_{{s_type.id}}" name="t_{{s_type.id}}"
                 type="checkbox" checked
-                onchange="toggleStationLayer({{s_type['id']}}, this.checked)"/>
-                <label for="t_{{s_type['id']}}">{{s_type['name']}}</label><br />
+                onchange="toggleStationLayer({{s_type.id}}, this.checked)"/>
+                <label for="t_{{s_type.id}}">{{s_type.name}}</label><br />
             % end
             <br />
             <input id="submit_btn" type="submit" value="Plan trip"/>
