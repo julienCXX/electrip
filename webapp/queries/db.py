@@ -21,10 +21,7 @@ def get_station_types():
 
 
 def get_stations_json():
-    result = {}
-    for s_type in get_station_types():
-        result[s_type.id] = s_type.stations
-    return json.dumps(result, default=utils.json_encoder)
+    return json.dumps(get_station_types().all(), default=utils.json_encoder)
 
 
 def get_euclidean_distance(p1, p2):

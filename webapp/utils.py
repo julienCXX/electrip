@@ -30,4 +30,8 @@ def json_encoder(obj):
     if isinstance(obj, model.Base):
         args = obj.__dict__.copy()
         del args['_sa_instance_state']
+        if isinstance(obj, model.StationType):
+            args['stations'] = obj.stations
+        if isinstance(obj, model.Station):
+            del args['type']
         return args
