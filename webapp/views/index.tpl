@@ -515,7 +515,9 @@ var Ui = (function() {
             iconUrl: mapImgPath + '/marker-icon-red.png'});
 
         fromMarker = L.marker([0, 0], {icon: greenMarkerIcon});
+        fromMarker.setZIndexOffset(Math.pow(2, 53) - 1);
         toMarker = L.marker([0, 0], {icon: redMarkerIcon});
+        toMarker.setZIndexOffset(Math.pow(2, 53));
 
         document.getElementById('range').onchange = function() {
             Router.invalidateTrip();
