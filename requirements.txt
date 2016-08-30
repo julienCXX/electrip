@@ -1,4 +1,6 @@
 bottle==0.12.9
-psycopg-postgis==0.1.2
+GeoAlchemy2==0.3.0
 psycopg2==2.6.2
 requests==2.10.0
+Shapely==1.5.16
+SQLAlchemy==1.0.14
