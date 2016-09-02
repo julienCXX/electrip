@@ -4,6 +4,8 @@ A trip planning service for electric vehicle owners
 Created for the Ensimag’s Open Data Challenge, year 2015-2016
 
 # Changelog
+* 0.2.1
+  * Fixed issue DB sessions not being closed properly
 * 0.2
   * Added support for running trough an application server
   * Using SQLAlchemy ORM: fixes potential SQL injections
