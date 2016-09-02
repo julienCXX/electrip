@@ -11,7 +11,7 @@ from route_planner import CachedRoutePlanner
 import utils
 import app_config
 
-__version__ = '0.2'
+__version__ = '0.2.1'
 
 application = Bottle()
 
