@@ -12,7 +12,7 @@ import app_config
 
 _engine = create_engine('postgresql://%s:%s@localhost/%s' %
                         (app_config.DB_USER, urlquote(app_config.DB_PASSWORD),
-                         app_config.DB_NAME))
+                         app_config.DB_NAME), max_overflow=20)
 _Session = sessionmaker(bind=_engine)
 
 
