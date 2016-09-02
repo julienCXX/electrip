@@ -1,4 +1,3 @@
-from contextlib import contextmanager
 import json
 from urllib.parse import quote_plus as urlquote
 from sqlalchemy import create_engine
@@ -17,49 +16,43 @@ _engine = create_engine('postgresql://%s:%s@localhost/%s' %
 _Session = sessionmaker(bind=_engine)
 
 
-@contextmanager
-def _session_scope():
-    """Provide a transactional scope around a series of operations."""
-
-    session = _Session()
-    try:
-        yield session
-        session.commit()
-    except:
-        session.rollback()
-        raise
-    finally:
-        session.close()
-
-
 def get_station_types():
-    with _session_scope() as session:
-        return session.query(StationType).order_by(StationType.id)
+    sess = _Session()
+    res = sess.query(StationType).order_by(StationType.id).all()
+    sess.close()
+    return res
 
 
 def get_stations_json():
-    return json.dumps(get_station_types().all(), default=utils.json_encoder)
+    sess = _Session()
+    res = sess.query(StationType).order_by(StationType.id).all()
+    res_json = json.dumps(res, default=utils.json_encoder)
+    sess.close()
+    return res_json
 
 
 def get_euclidean_distance(p1, p2):
     "Returns the distance (crow-fly) between 2 points (in meters)"
 
-    with _session_scope() as session:
-        res = session.query(func.ST_Distance(p1.cast(Geography),
-                            p2.cast(Geography))).one()
+    sess = _Session()
+    res = sess.query(func.ST_Distance(p1.cast(Geography),
+                     p2.cast(Geography))).one()
+    sess.close()
     return res[0]
 
 
 def get_candidate_charge_points(start, finish, max_dist_from_finish,
                                 station_types, drive_range):
-    with _session_scope() as session:
-        return session.query(Station.position, Station.id).\
-            filter(Station.type.in_(station_types)).\
-            filter(func.ST_Distance(Station.position, start.cast(Geography)) <
-                   drive_range).\
-            filter(func.ST_Distance(Station.position, start.cast(Geography)) >
-                   drive_range / 2).\
-            filter(func.ST_Distance(Station.position, finish.cast(Geography)) <
-                   max_dist_from_finish).\
-            order_by(func.ST_Distance(Station.position,
-                                      finish.cast(Geography)))
+    sess = _Session()
+    res = sess.query(Station.position, Station.id).\
+        filter(Station.type.in_(station_types)).\
+        filter(func.ST_Distance(Station.position, start.cast(Geography)) <
+               drive_range).\
+        filter(func.ST_Distance(Station.position, start.cast(Geography)) >
+               drive_range / 2).\
+        filter(func.ST_Distance(Station.position, finish.cast(Geography)) <
+               max_dist_from_finish).\
+        order_by(func.ST_Distance(Station.position,
+                                  finish.cast(Geography))).all()
+    sess.close()
+    return res
