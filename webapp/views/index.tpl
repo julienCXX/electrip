@@ -673,9 +673,6 @@ var Form = function (parameters) {
 
     var onZoomChanged = function (zoom) {
         routeParameters.zoom = zoom;
-        if (hasValidRoute) {
-            onSubmit();
-        }
     };
 
     var onCenterChanged = function (center) {
