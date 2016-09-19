@@ -4,6 +4,7 @@ import requests
 from utils import point_to_coords
 import app_config
 
+_REQUEST_HEADERS = {'user-agent': 'Electrip'}
 
 def get_effective_distance(p1, p2):
     "Returns the distance (using roads) between 2 points (in meters)"
@@ -11,7 +12,7 @@ def get_effective_distance(p1, p2):
     query = app_config.OSRM_URL + \
         'route/v1/driving/%f,%f;' % point_to_coords(p1, False) + \
         '%f,%f?overview=false' % point_to_coords(p2, False)
-    response = requests.get(url=query)
+    response = requests.get(url=query, headers=_REQUEST_HEADERS)
     r_json = response.json()
     if 'Ok' == r_json['code']:
         return r_json['routes'][0]['distance']
@@ -31,7 +32,7 @@ def get_routing_instructions(start, finish, via_points, zoom_level):
     query = query + \
         '%f,%f' % point_to_coords(finish, False) + \
         '?geometries=geojson&overview=full'
-    response = requests.get(url=query)
+    response = requests.get(url=query, headers=_REQUEST_HEADERS)
     response = response.json()
     if 'Ok' != response['code']:
         # No route available between points (TODO: temporary workaround)
