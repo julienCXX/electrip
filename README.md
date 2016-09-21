@@ -4,6 +4,9 @@ A trip planning service for electric vehicle owners
 Created for the Ensimag’s Open Data Challenge, year 2015-2016
 
 # Changelog
+* 0.3
+  * Major client-side code cleanup with improved ergonomics
+  * Using v5 for OSRM Web API when computing a route
 * 0.2.1
   * Fixed issue DB sessions not being closed properly
 * 0.2
