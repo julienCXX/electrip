@@ -5,14 +5,17 @@ import geoalchemy2.elements
 import model
 
 
-def point_to_coords(point):
+def point_to_coords(point, reverse=True):
     """
         Converts a GeoAlchemy point WKBElement() to a tuple of coordinates:
         (lat, lng)
     """
 
     coords = mapping(to_shape(point))['coordinates']
-    return (coords[1], coords[0])
+    if reverse:
+        return (coords[1], coords[0])
+    else:
+        return (coords[0], coords[1])
 
 
 def coords_to_point(point):
